@@ -49,7 +49,7 @@ We provide both the [buildspec.yml](https://github.com/aws-quickstart/quickstart
 
 To save you from the circular dependency of using the CDK (on your laptop?) to create the CodeBuild to then run the CDK for you to provision the cluster you can just use the [cluster-codebuild/EKSCodeBuildStack.template.json](https://github.com/aws-quickstart/quickstart-eks-cdk-python/blob/main/cluster-codebuild/EKSCodeBuildStack.template.json) CloudFormation template directly.
 
-Alternatively, you can install and use CDK directly (not via CodeBuild) on another machine such as your laptop or an EC2 Bastion. This approach is documented [here](https://github.com/aws-quickstart/quickstart-eks-cdk-python/manual-install.md).
+Alternatively, you can install and use CDK directly (not via CodeBuild) on another machine such as your laptop or an EC2 Bastion. This approach is documented [here](https://github.com/aws-quickstart/quickstart-eks-cdk-python/blob/main/manual-install.md).
 
 ## The three sample cdk.json sets of parameters
 
