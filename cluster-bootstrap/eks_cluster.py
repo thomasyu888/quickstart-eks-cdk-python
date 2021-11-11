@@ -415,7 +415,7 @@ class EKSClusterStack(core.Stack):
             awslbcontroller_chart = eks_cluster.add_helm_chart(
                 "aws-load-balancer-controller",
                 chart="aws-load-balancer-controller",
-                version="1.2.7",
+                version="1.3.2",
                 release="awslbcontroller",
                 repository="https://aws.github.io/eks-charts",
                 namespace="kube-system",
@@ -427,7 +427,10 @@ class EKSClusterStack(core.Stack):
                         "create": False,
                         "name": "aws-load-balancer-controller"
                     },
-                    "replicaCount": 2
+                    "replicaCount": 2,
+                    "podDisruptionBudget": {
+                        "maxUnavailable": 1
+                    }
                 }
             )
             awslbcontroller_chart.node.add_dependency(
@@ -477,7 +480,7 @@ class EKSClusterStack(core.Stack):
             externaldns_chart = eks_cluster.add_helm_chart(
                 "external-dns",
                 chart="external-dns",
-                version="1.3.2",
+                version="1.5.0",
                 release="externaldns",
                 repository="https://kubernetes-sigs.github.io/external-dns/",
                 namespace="kube-system",
@@ -660,7 +663,7 @@ class EKSClusterStack(core.Stack):
             awsebscsi_chart = eks_cluster.add_helm_chart(
                 "aws-ebs-csi-driver",
                 chart="aws-ebs-csi-driver",
-                version="2.2.0",
+                version="2.4.0",
                 release="awsebscsidriver",
                 repository="https://kubernetes-sigs.github.io/aws-ebs-csi-driver",
                 namespace="kube-system",
@@ -849,7 +852,7 @@ class EKSClusterStack(core.Stack):
             clusterautoscaler_chart = eks_cluster.add_helm_chart(
                 "cluster-autoscaler",
                 chart="cluster-autoscaler",
-                version="9.10.7",
+                version="9.10.8",
                 release="clusterautoscaler",
                 repository="https://kubernetes.github.io/autoscaler",
                 namespace="kube-system",
@@ -975,7 +978,7 @@ class EKSClusterStack(core.Stack):
             fluentbit_chart = eks_cluster.add_helm_chart(
                 "fluentbit",
                 chart="fluent-bit",
-                version="0.19.1",
+                version="0.19.5",
                 release="fluent-bit",
                 repository="https://fluent.github.io/helm-charts",
                 namespace="kube-system",
@@ -1040,13 +1043,8 @@ class EKSClusterStack(core.Stack):
 
         # Bastion Instance
         if (self.node.try_get_context("deploy_bastion") == "True"):
-            # Create an Instance Profile for our Admin Role to assume w/EC2
-            cluster_admin_role_instance_profile = iam.CfnInstanceProfile(
-                self, "ClusterAdminRoleInstanceProfile",
-                roles=[cluster_admin_role.role_name]
-            )
-
-            # Another way into our Bastion is via Systems Manager Session Manager
+            # If we created a new IAM role for Admin add the rights for SSM to manage the Instance to it
+            # since we're also assigning it to this instance and want to use Session Manager
             if (self.node.try_get_context("create_new_cluster_admin_role") == "True"):
                 cluster_admin_role.add_managed_policy(
                     iam.ManagedPolicy.from_aws_managed_policy_name("AmazonSSMManagedInstanceCore"))
@@ -1251,7 +1249,7 @@ class EKSClusterStack(core.Stack):
             fluentbit_chart_cw = eks_cluster.add_helm_chart(
                 "fluentbit-cw",
                 chart="fluent-bit",
-                version="0.19.1",
+                version="0.19.5",
                 release="fluent-bit-cw",
                 repository="https://fluent.github.io/helm-charts",
                 namespace="kube-system",
@@ -1327,7 +1325,7 @@ class EKSClusterStack(core.Stack):
             sg_pods_chart = eks_cluster.add_helm_chart(
                 "aws-vpc-cni",
                 chart="aws-vpc-cni",
-                version="1.1.9",
+                version="1.1.10",
                 release="aws-vpc-cni",
                 repository="https://aws.github.io/eks-charts",
                 namespace="kube-system",
@@ -1372,7 +1370,7 @@ class EKSClusterStack(core.Stack):
             csi_secrets_store_chart = eks_cluster.add_helm_chart(
                 "csi-secrets-store",
                 chart="secrets-store-csi-driver",
-                version="0.3.0",
+                version="1.0.0",
                 release="csi-secrets-store",
                 repository="https://kubernetes-sigs.github.io/secrets-store-csi-driver/charts",
                 namespace="kube-system",
@@ -1424,7 +1422,6 @@ class EKSClusterStack(core.Stack):
 
         # Kubernetes External Secrets
         if (self.node.try_get_context("deploy_external_secrets") == "True"):
-            # For more information see https://github.com/external-secrets/kubernetes-external-secrets
             # Deploy the External Secrets Controller
             # Create the Service Account
             externalsecrets_service_account = eks_cluster.add_service_account(
@@ -1452,10 +1449,11 @@ class EKSClusterStack(core.Stack):
                 iam.PolicyStatement.from_json(externalsecrets_policy_statement_json_1))
 
             # Deploy the Helm Chart
+            # For more information see https://github.com/external-secrets/kubernetes-external-secrets
             external_secrets_chart = eks_cluster.add_helm_chart(
                 "external-secrets",
                 chart="kubernetes-external-secrets",
-                version="8.3.0",
+                version="8.3.2",
                 repository="https://external-secrets.github.io/kubernetes-external-secrets/",
                 namespace="kube-system",
                 release="external-secrets",
@@ -1504,7 +1502,7 @@ class EKSClusterStack(core.Stack):
             kubecost_chart = eks_cluster.add_helm_chart(
                 "kubecost",
                 chart="cost-analyzer",
-                version="1.87.0",
+                version="1.88.0",
                 repository="https://kubecost.github.io/cost-analyzer/",
                 namespace="kube-system",
                 release="kubecost",
@@ -1585,7 +1583,7 @@ class EKSClusterStack(core.Stack):
             amp_prometheus_chart = eks_cluster.add_helm_chart(
                 "prometheus-chart",
                 chart="prometheus",
-                version="14.9.2",
+                version="14.11.1",
                 release="prometheus-for-amp",
                 repository="https://prometheus-community.github.io/helm-charts",
                 namespace="kube-system",
@@ -1639,7 +1637,7 @@ class EKSClusterStack(core.Stack):
             amp_prometheus_chart.node.add_dependency(amp_sa)
 
         # Self-Managed Grafana for AMP
-        if (self.node.try_get_context("deploy_grafana_for_amp") == "True"):
+        if (self.node.try_get_context("deploy_grafana_for_amp") == "True" and self.node.try_get_context("deploy_aws_lb_controller") == "True"):
             # Install a self-managed Grafana to visualise the AMP metrics
             # NOTE You likely want to use the AWS Managed Grafana (AMG) in production
             # We are using this as AMG requires SSO/SAML and is harder to include in the template
@@ -1650,7 +1648,7 @@ class EKSClusterStack(core.Stack):
             amp_grafana_chart = eks_cluster.add_helm_chart(
                 "amp-grafana-chart",
                 chart="grafana",
-                version="6.16.14",
+                version="6.17.5",
                 release="grafana-for-amp",
                 repository="https://grafana.github.io/helm-charts",
                 namespace="kube-system",
@@ -1702,6 +1700,7 @@ class EKSClusterStack(core.Stack):
                 }
             )
             amp_grafana_chart.node.add_dependency(amp_prometheus_chart)
+            amp_grafana_chart.node.add_dependency(awslbcontroller_chart)
 
             # Dashboards for Grafana from the grafana-dashboards.yaml file
             grafana_dashboards_yaml_file = open("grafana-dashboards.yaml", 'r')
@@ -1859,7 +1858,8 @@ class EKSClusterStack(core.Stack):
                         "namespace": "aws-observability"
                     },
                     "data": {
-                        "output.conf": "[OUTPUT]\n  Name  es\n  Match *\n  AWS_Region "+self.region+"\n  AWS_Auth On\n  Host "+os_domain.domain_endpoint+"\n  Port 443\n  TLS On\n  Replace_Dots On\n  Logstash_Format On\n"
+                        "output.conf": "[OUTPUT]\n  Name  es\n  Match *\n  AWS_Region "+self.region+"\n  AWS_Auth On\n  Host "+os_domain.domain_endpoint+"\n  Port 443\n  TLS On\n  Replace_Dots On\n  Logstash_Format On\n",
+                        "filters.conf": "[FILTER]\n  Name  kubernetes\n  Match  kube.*\n  Merge_Log  On\n  Buffer_Size  0\n  Kube_Meta_Cache_TTL  300s"
                     }
                 })
                 fargate_fluentbit_manifest_os.node.add_dependency(
