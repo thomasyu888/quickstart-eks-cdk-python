@@ -5,9 +5,11 @@
 # Install Node & Pyton
 apt update -y
 apt upgrade -y
-apt install nodejs npm python3-pip unzip -y
-ln -s /usr/bin/pip3 /usr/bin/pip
-ln -s /usr/bin/python3 /usr/bin/python
+curl -fsSL https://deb.nodesource.com/setup_16.x | sudo -E bash -
+apt update -y
+apt install nodejs python3-pip python3-testresources unzip -y
+#ln -s /usr/bin/pip3 /usr/bin/pip
+#ln -s /usr/bin/python3 /usr/bin/python
 
 # Install the latest AWS CLI
 cd /tmp
