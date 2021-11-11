@@ -1260,8 +1260,7 @@ class EKSClusterStack(core.Stack):
                     },
                     "config": {
                         "outputs": "[OUTPUT]\n    Name cloudwatch_logs\n    Match   *\n    region " + self.region + "\n    log_group_name fluent-bit-cloudwatch\n    log_stream_prefix from-fluent-bit-\n    auto_create_group true\n    log_retention_days " + str(self.node.try_get_context("cloudwatch_container_insights_logs_retention_days")) + "\n",
-                        "customParsers": "[PARSER]\n    Name crio\n    Format Regex\n    Regex ^(?<time>[^ ]+) (?<stream>stdout|stderr) (?<logtag>P|F) (?<log>.*)$\n    Time_Key    time\n    Time_Format %Y-%m-%dT%H:%M:%S.%L%z\n",
-                        "filters": "[FILTER]\n    Name parser\n    Match *\n    Key_name log\n    Parser crio\n    Reserve_Data On\n    Preserve_Key On\n"
+                        "filters.conf": "[FILTER]\n  Name  kubernetes\n  Match  kube.*\n  Merge_Log  On\n  Buffer_Size  0\n  Kube_Meta_Cache_TTL  300s"
                     }
                 }
             )
@@ -1807,8 +1806,7 @@ class EKSClusterStack(core.Stack):
                     },
                     "data": {
                         "output.conf": "[OUTPUT]\n    Name cloudwatch_logs\n    Match   *\n    region " + self.region + "\n    log_group_name fluent-bit-cloudwatch\n    log_stream_prefix from-fluent-bit-\n    auto_create_group true\n    log_retention_days " + str(self.node.try_get_context("cloudwatch_container_insights_logs_retention_days")) + "\n",
-                        "parsers.conf": "[PARSER]\n    Name crio\n    Format Regex\n    Regex ^(?<time>[^ ]+) (?<stream>stdout|stderr) (?<logtag>P|F) (?<log>.*)$\n    Time_Key    time\n    Time_Format %Y-%m-%dT%H:%M:%S.%L%z\n",
-                        "filters.conf": "[FILTER]\n   Name parser\n   Match *\n   Key_name log\n   Parser crio\n   Reserve_Data On\n   Preserve_Key On\n"
+                        "filters.conf": "[FILTER]\n  Name  kubernetes\n  Match  kube.*\n  Merge_Log  On\n  Buffer_Size  0\n  Kube_Meta_Cache_TTL  300s"
                     }
                 })
                 fargate_fluentbit_manifest_cw.node.add_dependency(
