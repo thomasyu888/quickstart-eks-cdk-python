@@ -63,8 +63,7 @@ While you can toggle any of the parameters to in a custom configuration, we incl
     - Cluster Autoscaler
     - Bastion
     - Metrics Server
-    - CloudWatch Container Insights for Metrics and Logs
-        - With a log retention of 7 days
+    - CloudWatch Container Insights for Metrics and Logs (with a log retention of 7 days)
     - Security Groups for Pods for network firewalling
     - Secrets Manager CSI Driver (for Secrets Manager Integration)
 1. The Cloud Native Community [cdk.json.community](https://github.com/aws-quickstart/quickstart-eks-cdk-python/blob/main/cluster-bootstrap/cdk.json.community) - replace the `cdk.json` file with this file (making it cdk.json instead) and get:
@@ -93,16 +92,19 @@ While you can toggle any of the parameters to in a custom configuration, we incl
 ## How to deploy via CodeBuild
 
 1. Fork this [Git Repo](https://github.com/aws-quickstart/quickstart-eks-cdk-python) to your own GitHub account - for instruction see https://docs.github.com/en/get-started/quickstart/fork-a-repo
-1. Generate a personal access token on GitHub - https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token 
+1. Generate a personal access token on GitHub - https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token. For GitHub, your personal access token must have the following scopes.
+    - repo: Grants full control of private repositories.
+    - repo:status: Grants read/write access to public and private repository commit statuses.
+    - admin:repo_hook: Grants full control of repository hooks. This scope is not required if your token has the repo scope.
 1. Run `aws codebuild import-source-credentials --server-type GITHUB --auth-type PERSONAL_ACCESS_TOKEN --token <token_value>` to provide your token to CodeBuild
 1. Select which of the [three cdk.json files](#the-three-cdkjson-sets-of-parameters) (cdk.json.default, cdk.json.community or cdk.json.fargate) you'd like as a base and copy that over the top of `cdk.json` in the `cluster-bootstrap/` folder.
-1. Edit the `cdk.json` file to further customise it to your environment. For example:
+1. Edit the [cdk.json](https://github.com/aws-quickstart/quickstart-eks-cdk-python/blob/main/cluster-bootstrap/cdk.json) file to further customise it to your environment. For example:
     - If you want to use an existing IAM Role to administer the cluster instead of creating a new one (which you'll then have to assume to administer the cluster) set `create_new_cluster_admin_role` to False and then add the ARN for your role in `existing_admin_role_arn`
-        - **NOTE** that if you bring an existing role AND deploy a Bastion that this role will get assigned to the Bastion by default as well (so that the Bastion can manage the cluster). This means that you need to allow `ec2.amazonaws.com` to perform action `sts:AssumeRole` on the Trust Policy / Assumed Role Policy of this role as well as add the Managed Policy `AmazonSSMManagedInstanceCore` to this role (so that your Bastion can register with SSM via this role and Session Manager will work)
+    - **NOTE** that if you bring an existing role AND deploy a Bastion that this role will get assigned to the Bastion by default as well (so that the Bastion can manage the cluster). This means that you need to allow `ec2.amazonaws.com` to perform action `sts:AssumeRole` on the Trust Policy / Assumed Role Policy of this role as well as add the Managed Policy `AmazonSSMManagedInstanceCore` to this role (so that your Bastion can register with SSM via this role and Session Manager will work)
     - If you want to change the VPC CIDR or the the mask/size of the public or private subnets to be allocated from within that block change `vpc_cidr`, `vpc_cidr_mask_public` and/or `vpc_cidr_mask_private`.
     - If you want to use an existing VPC rather than creating a new one then set `create_new_vpc` to False and set `existing_vpc_name` to the name of the VPC. The CDK will connect to AWS and work out the VPC and subnet IDs and which are public and private for you etc. from just the name.
     - If you'd like an instance type different from the default `m5.large` or to set the desired or maximum quantities change `eks_node_instance_type`, `eks_node_quantity`, `eks_node_max_quantity`, etc.
-        - **NOTE** that not everything in the Quick Start appears to work on Graviton/ARM64 Instance types. Initial testing shows the following addons do not work (do not have multi-arch images) - and we'll track them and enable when possible: kubecost, calico and the CSI secrets store provider.
+    - **NOTE** that not everything in the Quick Start appears to work on Graviton/ARM64 Instance types. Initial testing shows the following addons do not work (do not have multi-arch images) - and we'll track them and enable when possible: kubecost, calico and the CSI secrets store provider.
     - If you'd like the Managed Node Group to use Spot Instances instead of the default OnDemand change `eks_node_spot` to True
     - And there are other parameters in the file to change with names that are descriptive as to what they adjust. Many are detailed in the [Additional Documentation](#additional-documentation) around the the add-ons below.
 1. Find and replace `https://github.com/aws-quickstart/quickstart-eks-cdk-python.git` with the address to your GitHub fork in [cluster-codebuild/EKSCodeBuildStack.template.json](https://github.com/aws-quickstart/quickstart-eks-cdk-python/blob/main/cluster-codebuild/EKSCodeBuildStack.template.json)
