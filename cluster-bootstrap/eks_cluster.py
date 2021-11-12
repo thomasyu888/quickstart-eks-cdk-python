@@ -3,7 +3,7 @@ Purpose
 
 Example of how to provision an EKS cluster, create the IAM Roles for Service Accounts (IRSA) mappings,
 and then deploy various common cluster add-ons (AWS Load Balancer Controller, ExternalDNS, EBS & EFS CSI Drivers,
-Cluster Autoscaler, AWS Managed OpenSearch and fluentbit, Metrics Server, Calico Network Policy provider, 
+Cluster Autoscaler, AWS Managed OpenSearch and fluentbit, Metrics Server, Calico Network Policy provider,
 CloudWatch Container Insights, Security Groups for Pods, Kubecost, AWS Managed Prometheus and Grafana, etc.)
 
 NOTE: This pulls many parameters/options for what you'd like from the cdk.json context section.
@@ -167,6 +167,17 @@ class EKSClusterStack(core.Stack):
             # Otherwise give us OnDemand
             else:
                 node_capacity_type = eks.CapacityType.ON_DEMAND
+
+            # Parse the instance types as comma seperated list turn into instance_types[]
+            instance_types_context = self.node.try_get_context(
+                "eks_node_instance_type").split(",")
+            # print(instance_types_context)
+            instance_types = []
+            for value in instance_types_context:
+                # print(value)
+                instance_type = ec2.InstanceType(value)
+                instance_types.append(instance_type)
+
             eks_node_group = eks_cluster.add_nodegroup_capacity(
                 "cluster-default-ng",
                 capacity_type=node_capacity_type,
@@ -175,8 +186,7 @@ class EKSClusterStack(core.Stack):
                 disk_size=self.node.try_get_context("eks_node_disk_size"),
                 # The default in CDK is to force upgrades through even if they violate - it is safer to not do that
                 force_update=False,
-                instance_types=[ec2.InstanceType(
-                    self.node.try_get_context("eks_node_instance_type"))],
+                instance_types=instance_types,
                 release_version=self.node.try_get_context(
                     "eks_node_ami_version")
             )
@@ -912,7 +922,8 @@ class EKSClusterStack(core.Stack):
 
             # The capacity in Nodes and Volume Size/Type for the AWS OpenSearch
             os_capacity = opensearch.CapacityConfig(
-                data_nodes=self.node.try_get_context("opensearch_data_nodes"),
+                data_nodes=self.node.try_get_context(
+                    "opensearch_data_nodes"),
                 data_node_instance_type=self.node.try_get_context(
                     "opensearch_data_node_instance_type"),
                 master_nodes=self.node.try_get_context(
