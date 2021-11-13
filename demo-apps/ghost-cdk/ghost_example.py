@@ -87,6 +87,28 @@ class GhostStack(core.Stack):
             externalsecrets_service_account.add_to_policy(
                 iam.PolicyStatement.from_json(externalsecrets_policy_statement_json_1))
 
+            # Deploy the Helm Chart
+            external_secrets_chart = eks_cluster.add_helm_chart(
+                "external-secrets",
+                chart="kubernetes-external-secrets",
+                version="8.3.0",
+                repository="https://external-secrets.github.io/kubernetes-external-secrets/",
+                namespace="kube-system",
+                release="external-secrets",
+                values={
+                        "env": {
+                            "AWS_REGION": self.region
+                        },
+                    "serviceAccount": {
+                            "name": "kubernetes-external-secrets",
+                            "create": False
+                        },
+                    "securityContext": {
+                            "fsGroup": 65534
+                        }
+                }
+            )
+
         # Deploy the Security Group Policy (SGP)
         if (self.node.try_get_context("deploy_sgp") == "True"):
             # Create a Securuty Group for our App Pods
@@ -120,33 +142,11 @@ class GhostStack(core.Stack):
                     }
                 }
             })
+        # If not an SGP allow anything in the Cluster SG to connect to port 3306
         else:
-            security_group.add_ingress_rule(
-                ec2.Peer.any_ipv4(),
-                ec2.Port.tcp(3306)
-            )
-
-        # Deploy the Helm Chart
-        external_secrets_chart = eks_cluster.add_helm_chart(
-            "external-secrets",
-            chart="kubernetes-external-secrets",
-            version="8.3.0",
-            repository="https://external-secrets.github.io/kubernetes-external-secrets/",
-            namespace="kube-system",
-            release="external-secrets",
-            values={
-                    "env": {
-                        "AWS_REGION": self.region
-                    },
-                  "serviceAccount": {
-                        "name": "kubernetes-external-secrets",
-                        "create": False
-                    },
-                  "securityContext": {
-                        "fsGroup": 65534
-                    }
-            }
-        )
+            # Only allow connections on port 3306 from the Cluster SG
+            security_group.connections.allow_from(
+                other=eks_cluster.cluster_security_group, port_range=ec2.Port.tcp(3306))
 
         # Map in the secret for the ghost DB
         ghost_external_secret = eks_cluster.add_manifest("GhostExternalSecret", {
