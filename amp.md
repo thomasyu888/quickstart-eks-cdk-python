@@ -6,7 +6,7 @@ If you set `deploy_grafana_for_amp` to `True` in `cluster-bootstrap/cdk.json` th
 
 We have deployed an in-VPC private Network Load Balancer (NLB) (i.e. Not on the Internet) to access this Grafana service to visualize the metrics from the Prometheus we've deployed onto the cluster.
 
-To access this enter the following command `kubectl get service amp-grafana-nlb --namespace=kube-system` to find the address of this under EXTERNAL-IP. Alternatively, you can find the Grafana NLB in the AWS EC2 console and get its address from there.
+To access this enter the following command `kubectl get service grafana-for-amp --namespace=kube-system` to find the address of this under EXTERNAL-IP. Alternatively, you can find the Grafana NLB in the AWS EC2 console and get its address from there.
 
 The default username is `admin` and you get the initial password by running `kubectl get secrets grafana-for-amp -n kube-system -o jsonpath='{.data.admin-password}'|base64 --decode`. You can change this password as well as create/managed additional users once you are signed in.
 
