@@ -84,9 +84,9 @@ While you can toggle any of the parameters to in a custom configuration, we incl
     - ExternalDNS
     - Bastion
     - Metrics Server
-    - CloudWatch Logs (because the Kubernetes Filter for sending to Elastic/OpenSearch doesn't work with Fargate ATM)
+    - CloudWatch Logs (because it is the most serverless/platform native way to do logs)
     - Amazon Managed Service for Prometheus (AMP) w/self-hosted Grafana (because CloudWatch Container Insights doesn't work with Fargate ATM)
-    - Security Groups for Pods for network firewalling (built-in to Fargate so we don't need to reconfigure the CNI)
+    - Security Groups for Pods for network firewalling (built-in to Fargate so we don't need to reconfigure the CNI - and because NetworkPolices don't work with Fargate today)
     - External Secrets Controller (for Secrets Manager Integration)
 
 ## How to deploy via CodeBuild
@@ -120,9 +120,11 @@ While you can toggle any of the parameters to in a custom configuration, we incl
 ## Additional Documentation
 - [Deploy and connect to the Bastion](https://github.com/aws-quickstart/quickstart-eks-cdk-python/blob/main/bastion.md)
 - [Deploy and connect to the Client VPN](https://github.com/aws-quickstart/quickstart-eks-cdk-python/blob/main/clientvpn.md)
+- [Deploy and connect to CloudWatch Logs for log search and visualisation](https://github.com/aws-quickstart/quickstart-eks-cdk-python/blob/main/cloudwatch-logs.md)
 - [Deploy and connect to OpenSearch for log search and visualisation](https://github.com/aws-quickstart/quickstart-eks-cdk-python/blob/main/opensearch.md)
 - [Deploy and connect to Prometheus (AMP) and Grafana for metrics search and visualisation](https://github.com/aws-quickstart/quickstart-eks-cdk-python/blob/main/amp.md)
 - [Deploy and connect to Kubecost for cost/usage analysis and attribution](https://github.com/aws-quickstart/quickstart-eks-cdk-python/blob/main/kubecost.md)
 - [Deploy Open Policy Agent (OPA) Gatekeeper and sample policies via the Flux GitOps Operator](https://github.com/aws-quickstart/quickstart-eks-cdk-python/blob/main/gatekeeper.md)
 - [Upgrading your EKS Cluster and add-ons via the CDK](https://github.com/aws-quickstart/quickstart-eks-cdk-python/blob/main/upgrades.md)
 - [Deploying a few included demo/sample applications showing how to use the various add-ons](https://github.com/aws-quickstart/quickstart-eks-cdk-python/tree/main/demo-apps#readme)
+- [Explore the cluster's audit logs in CloudWatch Logs](https://github.com/aws-quickstart/quickstart-eks-cdk-python/blob/main/query-cluster-audit-logs.md)

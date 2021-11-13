@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: storage-test-efs
+spec:
+  serviceName: storage-test-efs
+  replicas: 1
+  selector:
+    matchLabels:
+      app: storage-test-efs
+  template:
+    metadata:
+      labels:
+        app: storage-test-efs
+    spec:
+      containers:
+        - name: "storage-test"
+          image: "ubuntu:latest"
+          command: ["/bin/sleep"]
+          args: ["infinity"]
+          volumeMounts:
+            - name: myefs
+              mountPath: /mnt/test
+  volumeClaimTemplates:
+  - metadata:
+      name: myefs
+    spec:
+      accessModes:
+        - ReadWriteMany
+      storageClassName: efs
+      resources:
+        requests:
+          storage: 1Gi

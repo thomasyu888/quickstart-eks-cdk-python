@@ -10,8 +10,8 @@ fi
 brew install python@3.10
 brew link python@3.10
 # Install Node & NPM
-brew install node@16
-brew link node@16
+brew install nodejs@16
+brew link nodejs@16
 # Install kubectl
 brew install kubectl
 # Install fluxctl

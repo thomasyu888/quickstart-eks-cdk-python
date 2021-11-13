@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: storage-test-ebs
+spec:
+  serviceName: storage-test-ebs
+  replicas: 1
+  selector:
+    matchLabels:
+      app: storage-test-ebs
+  template:
+    metadata:
+      labels:
+        app: storage-test-ebs
+    spec:
+      containers:
+        - name: "storage-test"
+          image: "ubuntu:latest"
+          command: ["/bin/sleep"]
+          args: ["infinity"]
+          volumeMounts:
+            - name: myebs
+              mountPath: /mnt/test
+  volumeClaimTemplates:
+  - metadata:
+      name: myebs
+    spec:
+      accessModes:
+        - ReadWriteOnce
+      storageClassName: ebs
+      resources:
+        requests:
+          storage: 1Gi

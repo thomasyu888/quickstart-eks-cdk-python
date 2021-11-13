@@ -771,7 +771,8 @@ class EKSClusterStack(core.Stack):
                         "serviceAccount": {
                             "create": False,
                             "name": "awsefscsidriver"
-                        }
+                        },
+                        "deleteAccessPointRootDir": True
                     },
                     "node": {
                         "serviceAccount": {
@@ -1527,8 +1528,7 @@ class EKSClusterStack(core.Stack):
                     "name": "kubecost-nlb",
                     "namespace": "kube-system",
                     "annotations": {
-                        "service.beta.kubernetes.io/aws-load-balancer-type": "nlb-ip",
-                        "service.beta.kubernetes.io/aws-load-balancer-internal": "true"
+                        "service.beta.kubernetes.io/aws-load-balancer-type": "nlb-ip"
                     }
                 },
                 "spec": {
