@@ -1,4 +1,4 @@
-# CDK to deploy ghost and its dependencies to the cluster created in Event Engine
+# CDK to deploy ghost and its dependencies to the cluster created in the Quick Start
 
 from aws_cdk import (
     aws_ec2 as ec2,
