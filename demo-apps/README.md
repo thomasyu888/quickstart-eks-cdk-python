@@ -61,7 +61,7 @@ We provide two examples here - [efs-pod.yaml](https://github.com/aws-quickstart/
 To deploy this example run:
 1. `kubectl apply -f efs-statefulset.yaml` to create a StatefulSet that generates PersistentVolumeClaims from the VolumeClaimTemplate defined there against 
 1. `kubectl get pods` and see our new `storage-test-efs-0` running
-1. `kubectl exec -it storage-test-efs -- /bin/bash` to give us an interactive shell into the running Pod
+1. `kubectl exec -it storage-test-efs-0 -- /bin/bash` to give us an interactive shell into the running Pod
 1. `df -h` to show us the mounted Volumes - you can see our unlimited (it shows as 8 Exabytes!) volume mounted to /mnt/test as we requested.
 1. `exit` to return to the bastion's shell
 1. Go to the EFS Service in the AWS Console
