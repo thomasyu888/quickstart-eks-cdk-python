@@ -76,9 +76,10 @@ Note that this requires the Kubernetes External Secrets Opeartor (https://github
 
 To deploy our CDK-based Ghost example:
 1. `cd ghost-cdk`
-1. (If npm isn't already installed) `npm install`
+1. `npm install` to install the pinned version of the CDK in the local node_modules
 1. `pip3 install -r requirements.txt` to install the required Python CDK packages
 1. `npx cdk synth` to generate the CloudFormation from the `ghost_example.py` CDK template and make sure everything is working. It will not only output it to the screen but also store it in the `cdk.out/` folder
+1. `npx cdk diff` to see what the CDK is going to do in the account/environment
 1. `npx cdk deploy` to deploy template this to our account in a new CloudFormation stack
 1. Answer `y` to the security confirmation and press Enter/Return
 
