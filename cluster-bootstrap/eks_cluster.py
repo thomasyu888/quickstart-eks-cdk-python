@@ -490,7 +490,7 @@ class EKSClusterStack(core.Stack):
             externaldns_chart = eks_cluster.add_helm_chart(
                 "external-dns",
                 chart="external-dns",
-                version="1.5.0",
+                version="1.6.0",
                 release="externaldns",
                 repository="https://kubernetes-sigs.github.io/external-dns/",
                 namespace="kube-system",
@@ -990,7 +990,7 @@ class EKSClusterStack(core.Stack):
             fluentbit_chart = eks_cluster.add_helm_chart(
                 "fluentbit",
                 chart="fluent-bit",
-                version="0.19.5",
+                version="0.19.6",
                 release="fluent-bit",
                 repository="https://fluent.github.io/helm-charts",
                 namespace="kube-system",
@@ -1016,7 +1016,7 @@ class EKSClusterStack(core.Stack):
             metricsserver_chart = eks_cluster.add_helm_chart(
                 "metrics-server",
                 chart="metrics-server",
-                version="3.6.0",
+                version="3.7.0",
                 release="metricsserver",
                 repository="https://kubernetes-sigs.github.io/metrics-server/",
                 namespace="kube-system"
@@ -1261,7 +1261,7 @@ class EKSClusterStack(core.Stack):
             fluentbit_chart_cw = eks_cluster.add_helm_chart(
                 "fluentbit-cw",
                 chart="fluent-bit",
-                version="0.19.5",
+                version="0.19.6",
                 release="fluent-bit-cw",
                 repository="https://fluent.github.io/helm-charts",
                 namespace="kube-system",
@@ -1464,7 +1464,7 @@ class EKSClusterStack(core.Stack):
             external_secrets_chart = eks_cluster.add_helm_chart(
                 "external-secrets",
                 chart="kubernetes-external-secrets",
-                version="8.3.2",
+                version="8.4.0",
                 repository="https://external-secrets.github.io/kubernetes-external-secrets/",
                 namespace="kube-system",
                 release="external-secrets",
@@ -1485,7 +1485,6 @@ class EKSClusterStack(core.Stack):
         # Kubecost
         if (self.node.try_get_context("deploy_kubecost") == "True" and self.node.try_get_context("fargate_only_cluster") == "False"):
             # For more information see https://www.kubecost.com/install#show-instructions
-            # And https://github.com/kubecost/cost-analyzer-helm-chart/tree/master
 
             # If we're deploying Prometheus then we don't need the node exporter
             if (self.node.try_get_context("deploy_amp") == "True"):
@@ -1510,10 +1509,11 @@ class EKSClusterStack(core.Stack):
                     "kubecostToken": self.node.try_get_context("kubecost_token")}
 
             # Deploy the Helm Chart
+            # For more information see https://github.com/kubecost/cost-analyzer-helm-chart/tree/master
             kubecost_chart = eks_cluster.add_helm_chart(
                 "kubecost",
                 chart="cost-analyzer",
-                version="1.88.0",
+                version="1.88.1",
                 repository="https://kubecost.github.io/cost-analyzer/",
                 namespace="kube-system",
                 release="kubecost",
@@ -1658,7 +1658,7 @@ class EKSClusterStack(core.Stack):
             amp_grafana_chart = eks_cluster.add_helm_chart(
                 "amp-grafana-chart",
                 chart="grafana",
-                version="6.17.5",
+                version="6.17.7",
                 release="grafana-for-amp",
                 repository="https://grafana.github.io/helm-charts",
                 namespace="kube-system",
