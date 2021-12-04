@@ -440,6 +440,12 @@ class EKSClusterStack(core.Stack):
                     "replicaCount": 2,
                     "podDisruptionBudget": {
                         "maxUnavailable": 1
+                    },
+                    "resources": {
+                        "requests": {
+                            "cpu": "0.25",
+                            "memory": "0.5Gi"
+                        }
                     }
                 }
             )
@@ -498,6 +504,12 @@ class EKSClusterStack(core.Stack):
                     "serviceAccount": {
                         "create": False,
                         "name": "external-dns"
+                    },
+                    "resources": {
+                        "requests": {
+                            "cpu": "0.25",
+                            "memory": "0.5Gi"
+                        }
                     }
                 }
             )
@@ -1019,7 +1031,15 @@ class EKSClusterStack(core.Stack):
                 version="3.7.0",
                 release="metricsserver",
                 repository="https://kubernetes-sigs.github.io/metrics-server/",
-                namespace="kube-system"
+                namespace="kube-system",
+                values={
+                    "resources": {
+                        "requests": {
+                            "cpu": "0.25",
+                            "memory": "0.5Gi"
+                        }
+                    }
+                }
             )
 
         # Calico to enforce NetworkPolicies
@@ -1478,6 +1498,12 @@ class EKSClusterStack(core.Stack):
                     },
                     "securityContext": {
                         "fsGroup": 65534
+                    },
+                    "resources": {
+                        "requests": {
+                            "cpu": "0.25",
+                            "memory": "0.5Gi"
+                        }
                     }
                 }
             )
@@ -1587,60 +1613,88 @@ class EKSClusterStack(core.Stack):
                 amp_policy_statement_json_1))
 
             # Install Prometheus with a low 1 hour local retention to ship the metrics to the AMP
-            # For more information see https://github.com/prometheus-community/helm-charts/tree/main/charts/prometheus
+            # For more information see https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack
+            # NOTE Changed this from just Prometheus to the Prometheus Operator for the additional functionality that provides
             # NOTE Changed this to not use EBS PersistentVolumes so it'll work with Fargate Only Clusters
             # This should be acceptable as the metrics are immediatly streamed to the AMP
             amp_prometheus_chart = eks_cluster.add_helm_chart(
                 "prometheus-chart",
-                chart="prometheus",
-                version="14.11.1",
+                chart="kube-prometheus-stack",
+                version="21.0.2",
                 release="prometheus-for-amp",
                 repository="https://prometheus-community.github.io/helm-charts",
                 namespace="kube-system",
                 values={
-                    "serviceAccounts": {
-                        "server": {
+                    "global": {
+                        "rbac":{
+                            "pspEnabled": False
+                        }
+                    },
+                    "prometheus": {
+                        "serviceAccount": {
+                            "create": False,
+                            "name": "amp-iamproxy-service-account",
                             "annotations": {
                                 "eks.amazonaws.com/role-arn": amp_sa.role.role_arn,
                             },
-                            "name": "amp-iamproxy-service-account",
-                            "create": False
                         },
-                        "alertmanager": {
-                            "create": False
-                        },
-                        "pushgateway": {
-                            "create": False
-                        }
-                    },
-                    "server": {
-                        "resources": {
-                            "limits": {
-                                "cpu": 1,
-                                "memory": "1Gi"
-                            }
-                        },
-                        "persistentVolume": {
-                            "enabled": False
-                        },
-                        "remoteWrite": [{
-                            "queue_config": {
-                                "max_samples_per_send": 1000,
-                                "max_shards": 200,
-                                "capacity": 2500
+                        "prometheusSpec": {
+                            "storageSpec": {
+                                    "emptyDir": {
+                                        "medium": "Memory"
+                                    }
                             },
-                            "url": "https://aps-workspaces."+self.region+".amazonaws.com/workspaces/"+amp_workspace_id+"/api/v1/remote_write",
-                            "sigv4": {
-                                "region": self.region
+                            "remoteWrite": [{
+                                "queueConfig": {
+                                    "maxSamplesPerSend": 1000,
+                                    "maxShards": 200,
+                                    "capacity": 2500
+                                },
+                                "url": "https://aps-workspaces."+self.region+".amazonaws.com/workspaces/"+amp_workspace_id+"/api/v1/remote_write",
+                                "sigv4": {
+                                    "region": self.region
+                                }
+                            }],
+                            "retention": "1h",
+                            "resources": {
+                                "limits": {
+                                    "cpu": 1,
+                                    "memory": "1Gi"
+                                }
                             }
-                        }],
-                        "retention": "1h"
+                        }
                     },
                     "alertmanager": {
                         "enabled": False
                     },
-                    "pushgateway": {
+                    "grafana": {
                         "enabled": False
+                    },
+                    "prometheusOperator": {
+                        "admissionWebhooks": {
+                            "enabled": False
+                        },
+                        "tls": {
+                            "enabled": False
+                        },
+                        "resources": {
+                            "requests": {
+                                "cpu": "0.25",
+                                "memory": "0.5Gi"
+                        }
+                    }
+                    },
+                    "kubeControllerManager": {
+                        "enabled": False
+                    },
+                    "kubeScheduler": {
+                        "enabled": False
+                    },
+                    "kubeProxy": {
+                        "enabled": False
+                    },
+                    "nodeExporter": {
+                        "enabled": not self.node.try_get_context("fargate_only_cluster")
                     }
                 }
             )
@@ -1705,6 +1759,12 @@ class EKSClusterStack(core.Stack):
                         "dashboards": {
                             "enabled": True,
                             "label": "grafana_dashboard"
+                        }
+                    },
+                    "resources": {
+                        "requests": {
+                            "cpu": "0.25",
+                            "memory": "0.5Gi"
                         }
                     }
                 }
