@@ -1937,6 +1937,18 @@ class EKSClusterStack(core.Stack):
                 print("You need to set only one destination for Fargate Logs to True")
 
 
+        # Install GPU agents for nodes which has nvidia-gpu
+        # https://github.com/NVIDIA/k8s-device-plugin
+        if (self.node.try_get_context("deploy_gpu_agent") == "True"):
+            nvidia_gpu_agent_chart = eks_cluster.add_helm_chart(
+                "nvidia-gpu-agent-chart",
+                chart="nvdp",
+                version="0.10.0",
+                release="nvidia-k8s-gpu-plugin",
+                repository="https://nvidia.github.io/k8s-device-plugin",
+                namespace="kube-system"
+            )
+
 app = core.App()
 if app.node.try_get_context("account").strip() != "":
     account = app.node.try_get_context("account")
