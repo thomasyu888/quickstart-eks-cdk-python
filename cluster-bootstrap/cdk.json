@@ -52,7 +52,6 @@
       "deploy_grafana_for_amp": "False",
       "fargate_only_cluster": "False",
       "fargate_logs_to_cloudwatch": "False",
-      "fargate_logs_to_managed_opensearch": "False",
-      "deploy_gpu_agent": "False"
+      "fargate_logs_to_managed_opensearch": "False"
     }
   }
