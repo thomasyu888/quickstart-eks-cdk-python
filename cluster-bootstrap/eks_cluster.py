@@ -426,7 +426,7 @@ class EKSClusterStack(core.Stack):
             awslbcontroller_chart = eks_cluster.add_helm_chart(
                 "aws-load-balancer-controller",
                 chart="aws-load-balancer-controller",
-                version="1.3.2",
+                version="1.3.3",
                 release="awslbcontroller",
                 repository="https://aws.github.io/eks-charts",
                 namespace="kube-system",
@@ -497,7 +497,7 @@ class EKSClusterStack(core.Stack):
             externaldns_chart = eks_cluster.add_helm_chart(
                 "external-dns",
                 chart="external-dns",
-                version="1.6.0",
+                version="1.7.1",
                 release="externaldns",
                 repository="https://kubernetes-sigs.github.io/external-dns/",
                 namespace="kube-system",
@@ -682,11 +682,11 @@ class EKSClusterStack(core.Stack):
                 awsebscsidriver_policy)
 
             # Install the AWS EBS CSI Driver
-            # For more info see https://github.com/kubernetes-sigs/aws-ebs-csi-driver
+            # For more info see https://github.com/kubernetes-sigs/aws-ebs-csi-driver/tree/master/charts/aws-ebs-csi-driver
             awsebscsi_chart = eks_cluster.add_helm_chart(
                 "aws-ebs-csi-driver",
                 chart="aws-ebs-csi-driver",
-                version="2.4.0",
+                version="2.6.2",
                 release="awsebscsidriver",
                 repository="https://kubernetes-sigs.github.io/aws-ebs-csi-driver",
                 namespace="kube-system",
@@ -771,11 +771,11 @@ class EKSClusterStack(core.Stack):
                 iam.PolicyStatement.from_json(awsefscsidriver_policy_statement_json_3))
 
             # Install the AWS EFS CSI Driver
-            # For more info see https://github.com/kubernetes-sigs/aws-efs-csi-driver
+            # For more info see https://github.com/kubernetes-sigs/aws-efs-csi-driver/tree/release-1.3/charts/aws-efs-csi-driver
             awsefscsi_chart = eks_cluster.add_helm_chart(
                 "aws-efs-csi-driver",
                 chart="aws-efs-csi-driver",
-                version="2.2.0",
+                version="2.2.3",
                 release="awsefscsidriver",
                 repository="https://kubernetes-sigs.github.io/aws-efs-csi-driver/",
                 namespace="kube-system",
@@ -872,11 +872,11 @@ class EKSClusterStack(core.Stack):
                 iam.PolicyStatement.from_json(clusterautoscaler_policy_statement_json_1))
 
             # Install the Cluster Autoscaler
-            # For more info see https://github.com/kubernetes/autoscaler
+            # For more info see https://github.com/kubernetes/autoscaler/tree/master/charts/cluster-autoscaler
             clusterautoscaler_chart = eks_cluster.add_helm_chart(
                 "cluster-autoscaler",
                 chart="cluster-autoscaler",
-                version="9.10.8",
+                version="9.11.0",
                 release="clusterautoscaler",
                 repository="https://kubernetes.github.io/autoscaler",
                 namespace="kube-system",
@@ -1003,7 +1003,7 @@ class EKSClusterStack(core.Stack):
             fluentbit_chart = eks_cluster.add_helm_chart(
                 "fluentbit",
                 chart="fluent-bit",
-                version="0.19.6",
+                version="0.19.17",
                 release="fluent-bit",
                 repository="https://fluent.github.io/helm-charts",
                 namespace="kube-system",
@@ -1282,7 +1282,7 @@ class EKSClusterStack(core.Stack):
             fluentbit_chart_cw = eks_cluster.add_helm_chart(
                 "fluentbit-cw",
                 chart="fluent-bit",
-                version="0.19.6",
+                version="0.19.17",
                 release="fluent-bit-cw",
                 repository="https://fluent.github.io/helm-charts",
                 namespace="kube-system",
@@ -1357,7 +1357,7 @@ class EKSClusterStack(core.Stack):
             sg_pods_chart = eks_cluster.add_helm_chart(
                 "aws-vpc-cni",
                 chart="aws-vpc-cni",
-                version="1.1.10",
+                version="1.1.12",
                 release="aws-vpc-cni",
                 repository="https://aws.github.io/eks-charts",
                 namespace="kube-system",
@@ -1402,7 +1402,7 @@ class EKSClusterStack(core.Stack):
             csi_secrets_store_chart = eks_cluster.add_helm_chart(
                 "csi-secrets-store",
                 chart="secrets-store-csi-driver",
-                version="1.0.0",
+                version="1.0.1",
                 release="csi-secrets-store",
                 repository="https://kubernetes-sigs.github.io/secrets-store-csi-driver/charts",
                 namespace="kube-system",
@@ -1481,11 +1481,11 @@ class EKSClusterStack(core.Stack):
                 iam.PolicyStatement.from_json(externalsecrets_policy_statement_json_1))
 
             # Deploy the Helm Chart
-            # For more information see https://github.com/external-secrets/kubernetes-external-secrets
+            # For more information see https://github.com/external-secrets/kubernetes-external-secrets/tree/master/charts/kubernetes-external-secrets
             external_secrets_chart = eks_cluster.add_helm_chart(
                 "external-secrets",
                 chart="kubernetes-external-secrets",
-                version="8.4.0",
+                version="8.5.1",
                 repository="https://external-secrets.github.io/kubernetes-external-secrets/",
                 namespace="kube-system",
                 release="external-secrets",
@@ -1536,11 +1536,11 @@ class EKSClusterStack(core.Stack):
                     "kubecostToken": self.node.try_get_context("kubecost_token")}
 
             # Deploy the Helm Chart
-            # For more information see https://github.com/kubecost/cost-analyzer-helm-chart/tree/master
+            # For more information see https://github.com/kubecost/cost-analyzer-helm-chart/tree/master/cost-analyzer
             kubecost_chart = eks_cluster.add_helm_chart(
                 "kubecost",
                 chart="cost-analyzer",
-                version="1.88.1",
+                version="1.89.2",
                 repository="https://kubecost.github.io/cost-analyzer/",
                 namespace="kube-system",
                 release="kubecost",
@@ -1621,16 +1621,11 @@ class EKSClusterStack(core.Stack):
             amp_prometheus_chart = eks_cluster.add_helm_chart(
                 "prometheus-chart",
                 chart="kube-prometheus-stack",
-                version="21.0.2",
+                version="30.2.0",
                 release="prometheus-for-amp",
                 repository="https://prometheus-community.github.io/helm-charts",
                 namespace="kube-system",
                 values={
-                    "global": {
-                        "rbac":{
-                            "pspEnabled": False
-                        }
-                    },
                     "prometheus": {
                         "serviceAccount": {
                             "create": False,
@@ -1641,9 +1636,9 @@ class EKSClusterStack(core.Stack):
                         },
                         "prometheusSpec": {
                             "storageSpec": {
-                                    "emptyDir": {
-                                        "medium": "Memory"
-                                    }
+                                "emptyDir": {
+                                    "medium": "Memory"
+                                }
                             },
                             "remoteWrite": [{
                                 "queueConfig": {
@@ -1682,8 +1677,8 @@ class EKSClusterStack(core.Stack):
                             "requests": {
                                 "cpu": "0.25",
                                 "memory": "0.5Gi"
+                            }
                         }
-                    }
                     },
                     "kubeControllerManager": {
                         "enabled": False
@@ -1713,7 +1708,7 @@ class EKSClusterStack(core.Stack):
             amp_grafana_chart = eks_cluster.add_helm_chart(
                 "amp-grafana-chart",
                 chart="grafana",
-                version="6.17.7",
+                version="6.21.2",
                 release="grafana-for-amp",
                 repository="https://grafana.github.io/helm-charts",
                 namespace="kube-system",
@@ -1936,6 +1931,7 @@ class EKSClusterStack(core.Stack):
                     fargate_namespace_manifest)
             else:
                 print("You need to set only one destination for Fargate Logs to True")
+
 
 app = core.App()
 if app.node.try_get_context("account").strip() != "":
