@@ -1708,7 +1708,7 @@ class EKSClusterStack(core.Stack):
             amp_grafana_chart = eks_cluster.add_helm_chart(
                 "amp-grafana-chart",
                 chart="grafana",
-                version="6.21.2",
+                version="6.21.1",
                 release="grafana-for-amp",
                 repository="https://grafana.github.io/helm-charts",
                 namespace="kube-system",
