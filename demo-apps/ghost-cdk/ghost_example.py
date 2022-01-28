@@ -1,19 +1,20 @@
 # CDK to deploy ghost and its dependencies to the cluster created in the Quick Start
 
+from constructs import Construct
+from aws_cdk import App, Stack, Environment, RemovalPolicy, Fn
 from aws_cdk import (
     aws_ec2 as ec2,
     aws_rds as rds,
     aws_eks as eks,
-    aws_iam as iam,
-    core
+    aws_iam as iam
 )
 import os
 import yaml
 
 
-class GhostStack(core.Stack):
+class GhostStack(Stack):
 
-    def __init__(self, scope: core.Construct, id: str, **kwargs) -> None:
+    def __init__(self, scope: Construct, id: str, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
 
         # Import our existing VPC whose name is EKSClusterStack/VPC
@@ -30,7 +31,7 @@ class GhostStack(core.Stack):
         ghost_rds = rds.DatabaseInstance(
             self, "RDS",
             deletion_protection=False,
-            removal_policy=core.RemovalPolicy.DESTROY,
+            removal_policy=RemovalPolicy.DESTROY,
             multi_az=False,
             allocated_storage=20,
             engine=rds.DatabaseInstanceEngine.mysql(
@@ -47,15 +48,15 @@ class GhostStack(core.Stack):
         # Import our existing EKS Cluster whose name and other details are in CloudFormation Exports
         eks_cluster = eks.Cluster.from_cluster_attributes(
             self, "cluster",
-            cluster_name=core.Fn.import_value("EKSClusterName"),
+            cluster_name=Fn.import_value("EKSClusterName"),
             open_id_connect_provider=eks.OpenIdConnectProvider.from_open_id_connect_provider_arn(
                 self, "EKSClusterOIDCProvider",
-                open_id_connect_provider_arn=core.Fn.import_value(
+                open_id_connect_provider_arn=Fn.import_value(
                     "EKSClusterOIDCProviderARN")
             ),
-            kubectl_role_arn=core.Fn.import_value("EKSClusterKubectlRoleARN"),
+            kubectl_role_arn=Fn.import_value("EKSClusterKubectlRoleARN"),
             vpc=vpc,
-            kubectl_security_group_id=core.Fn.import_value("EKSSGID"),
+            kubectl_security_group_id=Fn.import_value("EKSSGID"),
             kubectl_private_subnet_ids=[
                 vpc.private_subnets[0].subnet_id, vpc.private_subnets[1].subnet_id]
         )
@@ -215,7 +216,7 @@ class GhostStack(core.Stack):
         eks_cluster.add_manifest("GhostIngressManifest", ghost_ingress_yaml)
 
 
-app = core.App()
+app = App()
 if app.node.try_get_context("account").strip() != "":
     account = app.node.try_get_context("account")
 else:
@@ -227,6 +228,6 @@ if app.node.try_get_context("region").strip() != "":
 else:
     region = os.environ.get("CDK_DEPLOY_REGION",
                             os.environ["CDK_DEFAULT_REGION"])
-ghost_stack = GhostStack(app, "GhostStack", env=core.Environment(
+ghost_stack = GhostStack(app, "GhostStack", env=Environment(
     account=account, region=region))
 app.synth()
