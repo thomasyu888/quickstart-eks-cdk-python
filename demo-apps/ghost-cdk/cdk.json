@@ -3,7 +3,6 @@
     "context": {
         "account": "",
         "region": "",
-        "@aws-cdk/aws-secretsmanager:parseOwnedSecretName": true,
         "deploy_external_secrets": "False",
         "deploy_sgp": "True"
     }

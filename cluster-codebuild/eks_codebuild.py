@@ -11,17 +11,17 @@ NOTE: This pulls many parameters/options for what you'd like from the cdk.json c
 Have a look there for many options you can change to customise this template for your environments/needs.
 """
 
+from constructs import Construct
+from aws_cdk import App, Stack
 from aws_cdk import (
     aws_iam as iam,
     aws_codebuild as codebuild,
-    core,
 )
-import os
 
 
-class EKSCodeBuildStack(core.Stack):
+class EKSCodeBuildStack(Stack):
 
-    def __init__(self, scope: core.Construct, id: str, **kwargs) -> None:
+    def __init__(self, scope: Construct, id: str, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
 
         # Create IAM Role For CodeBuild
@@ -61,6 +61,6 @@ class EKSCodeBuildStack(core.Stack):
         )
 
 
-app = core.App()
+app = App()
 eks_codebuild_stack = EKSCodeBuildStack(app, "EKSCodeBuildStack")
 app.synth()

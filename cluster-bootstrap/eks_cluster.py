@@ -10,6 +10,8 @@ NOTE: This pulls many parameters/options for what you'd like from the cdk.json c
 Have a look there for many options you can change to customise this template for your environments/needs.
 """
 
+from constructs import Construct
+from aws_cdk import App, Stack, Environment, CfnOutput, RemovalPolicy
 from aws_cdk import (
     aws_ec2 as ec2,
     aws_eks as eks,
@@ -18,7 +20,6 @@ from aws_cdk import (
     aws_logs as logs,
     aws_certificatemanager as cm,
     aws_efs as efs,
-    core
 )
 import os
 import yaml
@@ -28,9 +29,9 @@ from ekslogs_custom_resource import EKSLogsObjectResource
 from amp_custom_resource import AMPCustomResource
 
 
-class EKSClusterStack(core.Stack):
+class EKSClusterStack(Stack):
 
-    def __init__(self, scope: core.Construct, id: str, **kwargs) -> None:
+    def __init__(self, scope: Construct, id: str, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
 
         # Either create a new IAM role to administrate the cluster or create a new one
@@ -49,7 +50,7 @@ class EKSClusterStack(core.Stack):
                 ],
                 "Resource": "*"
             }
-            cluster_admin_role.add_to_policy(
+            cluster_admin_role.add_to_principal_policy(
                 iam.PolicyStatement.from_json(cluster_admin_policy_statement_json_1))
         else:
             # You'll also need to add a trust relationship to ec2.amazonaws.com to sts:AssumeRole to this as well
@@ -79,7 +80,7 @@ class EKSClusterStack(core.Stack):
                     ),
                     # 3 x Private Subnets (1 per AZ) with 256 IPs each for our Nodes and Pods
                     ec2.SubnetConfiguration(
-                        subnet_type=ec2.SubnetType.PRIVATE,
+                        subnet_type=ec2.SubnetType.PRIVATE_WITH_NAT,
                         name="Private",
                         cidr_mask=self.node.try_get_context(
                             "vpc_cidr_mask_private")
@@ -124,35 +125,35 @@ class EKSClusterStack(core.Stack):
         # Create the CF exports that let you rehydrate the Cluster object in other stack(s)
         if (self.node.try_get_context("create_cluster_exports") == "True"):
             # Output the EKS Cluster Name and Export it
-            core.CfnOutput(
+            CfnOutput(
                 self, "EKSClusterName",
                 value=eks_cluster.cluster_name,
                 description="The name of the EKS Cluster",
                 export_name="EKSClusterName"
             )
             # Output the EKS Cluster OIDC Issuer and Export it
-            core.CfnOutput(
+            CfnOutput(
                 self, "EKSClusterOIDCProviderARN",
                 value=eks_cluster.open_id_connect_provider.open_id_connect_provider_arn,
                 description="The EKS Cluster's OIDC Provider ARN",
                 export_name="EKSClusterOIDCProviderARN"
             )
             # Output the EKS Cluster kubectl Role ARN
-            core.CfnOutput(
+            CfnOutput(
                 self, "EKSClusterKubectlRoleARN",
                 value=eks_cluster.kubectl_role.role_arn,
                 description="The EKS Cluster's kubectl Role ARN",
                 export_name="EKSClusterKubectlRoleARN"
             )
             # Output the EKS Cluster SG ID
-            core.CfnOutput(
+            CfnOutput(
                 self, "EKSSGID",
                 value=eks_cluster.kubectl_security_group.security_group_id,
                 description="The EKS Cluster's kubectl SG ID",
                 export_name="EKSSGID"
             )
             # Output the EKS Fargate Pod Execution Role (to use for logging to work)
-            core.CfnOutput(
+            CfnOutput(
                 self, "EKSFargatePodExecRoleArn",
                 value=fargate_pod_execution_role.role_arn,
                 description="The EKS Cluster's Fargate Pod Execution Role ARN",
@@ -486,9 +487,9 @@ class EKSClusterStack(core.Stack):
             }
 
             # Attach the necessary permissions
-            externaldns_service_account.add_to_policy(
+            externaldns_service_account.add_to_principal_policy(
                 iam.PolicyStatement.from_json(externaldns_policy_statement_json_1))
-            externaldns_service_account.add_to_policy(
+            externaldns_service_account.add_to_principal_policy(
                 iam.PolicyStatement.from_json(externaldns_policy_statement_json_2))
 
             # Deploy External DNS from the bitnami Helm chart
@@ -763,11 +764,11 @@ class EKSClusterStack(core.Stack):
             }
 
             # Attach the necessary permissions
-            awsefscsidriver_service_account.add_to_policy(
+            awsefscsidriver_service_account.add_to_principal_policy(
                 iam.PolicyStatement.from_json(awsefscsidriver_policy_statement_json_1))
-            awsefscsidriver_service_account.add_to_policy(
+            awsefscsidriver_service_account.add_to_principal_policy(
                 iam.PolicyStatement.from_json(awsefscsidriver_policy_statement_json_2))
-            awsefscsidriver_service_account.add_to_policy(
+            awsefscsidriver_service_account.add_to_principal_policy(
                 iam.PolicyStatement.from_json(awsefscsidriver_policy_statement_json_3))
 
             # Install the AWS EFS CSI Driver
@@ -822,7 +823,7 @@ class EKSClusterStack(core.Stack):
                 self, "EFSFilesystem",
                 vpc=eks_vpc,
                 security_group=efs_security_group,
-                removal_policy=core.RemovalPolicy.DESTROY
+                removal_policy=RemovalPolicy.DESTROY
             )
 
             # Set up the StorageClass pointing at the new CSI Driver
@@ -868,7 +869,7 @@ class EKSClusterStack(core.Stack):
             }
 
             # Attach the necessary permissions
-            clusterautoscaler_service_account.add_to_policy(
+            clusterautoscaler_service_account.add_to_principal_policy(
                 iam.PolicyStatement.from_json(clusterautoscaler_policy_statement_json_1))
 
             # Install the Cluster Autoscaler
@@ -956,7 +957,7 @@ class EKSClusterStack(core.Stack):
             # and defaults to one node in a single availability zone
             os_domain = opensearch.Domain(
                 self, "OSDomain",
-                removal_policy=core.RemovalPolicy.DESTROY,
+                removal_policy=RemovalPolicy.DESTROY,
                 # https://docs.aws.amazon.com/cdk/api/latest/docs/@aws-cdk_aws-opensearchservice.EngineVersion.html
                 version=opensearch.EngineVersion.OPENSEARCH_1_0,
                 vpc=eks_vpc,
@@ -970,7 +971,7 @@ class EKSClusterStack(core.Stack):
             )
 
             # Output the OpenSearch Dashboards address in our CloudFormation Stack
-            core.CfnOutput(
+            CfnOutput(
                 self, "OpenSearchDashboardsAddress",
                 value="https://" + os_domain.domain_endpoint + "/_dashboards/",
                 description="Private endpoint for this EKS environment's OpenSearch to consume the logs",
@@ -995,7 +996,7 @@ class EKSClusterStack(core.Stack):
             }
 
             # Add the policies to the service account
-            fluentbit_service_account.add_to_policy(
+            fluentbit_service_account.add_to_principal_policy(
                 iam.PolicyStatement.from_json(fluentbit_policy_statement_json_1))
             os_domain.grant_write(fluentbit_service_account)
 
@@ -1274,7 +1275,7 @@ class EKSClusterStack(core.Stack):
             }
 
             # Add the policies to the service account
-            fluentbit_cw_service_account.add_to_policy(
+            fluentbit_cw_service_account.add_to_principal_policy(
                 iam.PolicyStatement.from_json(fluentbit_cw_policy_statement_json_1))
 
             # For more info check out https://github.com/fluent/helm-charts/tree/main/charts/fluent-bit
@@ -1333,7 +1334,7 @@ class EKSClusterStack(core.Stack):
                 )
                 # We don't want to clean this up on Delete - it is a one-time patch to let the Helm Chart own the resources
                 patch_resource = patch.node.find_child("Resource")
-                patch_resource.apply_removal_policy(core.RemovalPolicy.RETAIN)
+                patch_resource.apply_removal_policy(RemovalPolicy.RETAIN)
                 # Keep track of all the patches to set dependencies down below
                 patches.append(patch)
 
@@ -1434,7 +1435,7 @@ class EKSClusterStack(core.Stack):
                 "Action": ["secretsmanager:GetSecretValue", "secretsmanager:DescribeSecret"],
                 "Resource": ["*"]
             }
-            secrets_csi_sa.add_to_policy(iam.PolicyStatement.from_json(
+            secrets_csi_sa.add_to_principal_policy(iam.PolicyStatement.from_json(
                 secrets_csi_policy_statement_json_1))
 
             # Deploy the manifests from secrets-store-csi-driver-provider-aws.yaml
@@ -1477,7 +1478,7 @@ class EKSClusterStack(core.Stack):
             }
 
             # Add the policies to the service account
-            externalsecrets_service_account.add_to_policy(
+            externalsecrets_service_account.add_to_principal_policy(
                 iam.PolicyStatement.from_json(externalsecrets_policy_statement_json_1))
 
             # Deploy the Helm Chart
@@ -1584,7 +1585,7 @@ class EKSClusterStack(core.Stack):
             amp_workspace_id = AMPCustomResource(
                 self, "AMPCustomResource").workspace_id
             # Output the AMP Workspace ID and Export it
-            core.CfnOutput(
+            CfnOutput(
                 self, "AMPWorkspaceID",
                 value=amp_workspace_id,
                 description="The ID of the AMP Workspace",
@@ -1610,7 +1611,7 @@ class EKSClusterStack(core.Stack):
                 ],
                 "Resource": ["*"]
             }
-            amp_sa.add_to_policy(iam.PolicyStatement.from_json(
+            amp_sa.add_to_principal_policy(iam.PolicyStatement.from_json(
                 amp_policy_statement_json_1))
 
             # Install Prometheus with a low 1 hour local retention to ship the metrics to the AMP
@@ -1850,7 +1851,7 @@ class EKSClusterStack(core.Stack):
                     ],
                     "Resource": "*"
                 }
-                fargate_pod_execution_role.add_to_policy(
+                fargate_pod_execution_role.add_to_principal_policy(
                     iam.PolicyStatement.from_json(fargate_cw_logs_policy_statement_json_1))
 
                 fargate_namespace_manifest = eks_cluster.add_manifest("FargateLoggingNamespace", {
@@ -1901,7 +1902,7 @@ class EKSClusterStack(core.Stack):
                         os_domain.domain_arn
                     ]
                 }
-                fargate_pod_execution_role.add_to_policy(
+                fargate_pod_execution_role.add_to_principal_policy(
                     iam.PolicyStatement.from_json(fargate_os_policy_statement_json_1))
 
                 fargate_namespace_manifest = eks_cluster.add_manifest("FargateLoggingNamespace", {
@@ -1933,7 +1934,7 @@ class EKSClusterStack(core.Stack):
                 print("You need to set only one destination for Fargate Logs to True")
 
 
-app = core.App()
+app = App()
 if app.node.try_get_context("account").strip() != "":
     account = app.node.try_get_context("account")
 else:
@@ -1948,5 +1949,5 @@ else:
 # Note that if we didn't pass through the ACCOUNT and REGION from these environment variables that
 # it won't let us create 3 AZs and will only create a max of 2 - even when we ask for 3 in eks_vpc
 eks_cluster_stack = EKSClusterStack(
-    app, "EKSClusterStack", env=core.Environment(account=account, region=region))
+    app, "EKSClusterStack", env=Environment(account=account, region=region))
 app.synth()
