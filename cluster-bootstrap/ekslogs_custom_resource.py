@@ -3,23 +3,21 @@ Purpose
 
 Enable all the control plane logs for EKS via Lambda since it doesn't yet have CloudFormation support
 """
-
+from constructs import Construct
 from aws_cdk import (
     aws_iam as iam,
-    custom_resources as custom_resources,
-    core,
+    custom_resources as custom_resources
 )
-import os
 
 
-class EKSLogsObjectResource(core.Construct):
+class EKSLogsObjectResource(Construct):
     """EKS SDK updateClusterConfig
     Arguments:
         :param eks_name -- The name of the EKS cluster to enable logging on
         :param eks_arn -- The ARN of the EKS cluster to enable logging on
     """
 
-    def __init__(self, scope: core.Construct, id: str, eks_name: str, eks_arn: str, log_retention=None) -> None:
+    def __init__(self, scope: Construct, id: str, eks_name: str, eks_arn: str, log_retention=None) -> None:
         super().__init__(scope, id)
 
         on_create = self.get_on_create_update(eks_name=eks_name)

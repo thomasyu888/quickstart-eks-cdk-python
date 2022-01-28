@@ -4,18 +4,17 @@ Purpose
 Create and delete our AWS Managed Prometheus (AMP) since it doesn't yet have CloudFormation support
 """
 
+from constructs import Construct
 from aws_cdk import (
     aws_iam as iam,
     aws_logs as logs,
-    custom_resources as custom_resources,
-    core,
+    custom_resources as custom_resources
 )
-import os
 
 
-class AMPCustomResource(core.Construct):
+class AMPCustomResource(Construct):
 
-    def __init__(self, scope: core.Construct, id: str) -> None:
+    def __init__(self, scope: Construct, id: str) -> None:
         super().__init__(scope, id)
 
         lambda_role = iam.Role(self, "LambdaRole",
