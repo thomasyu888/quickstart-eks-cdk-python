@@ -8,7 +8,7 @@ We have deployed an in-VPC private Network Load Balancer (NLB) (i.e. Not on the 
 
 To access this enter the following command `kubectl get service grafana-for-amp --namespace=kube-system` to find the address of this under EXTERNAL-IP. Alternatively, you can find the Grafana NLB in the AWS EC2 console and get its address from there.
 
-The default username is `admin` and you get the initial password by running `kubectl get secrets grafana-for-amp -n kube-system -o jsonpath='{.data.admin-password}'|base64 --decode`. You can change this password as well as create/managed additional users once you are signed in.
+The default username is `admin` and you get the initial password by running `kubectl get secrets grafana-for-amp -n kube-system -o jsonpath='{.data.admin-password}'|base64 --decode` (omitting the % that might appear at the end). You can change this password as well as create/managed additional users once you are signed in.
 
 We have set up AMP as a datasource and loaded a few sample dashboards for you to visualise the metrics on your EKS cluster:
 * `Cluster Monitoring for Kubernetes` to see cluster and node-level CPU, memory, network IO and free disk space
