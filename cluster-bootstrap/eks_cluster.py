@@ -20,13 +20,10 @@ from aws_cdk import (
     aws_logs as logs,
     aws_certificatemanager as cm,
     aws_efs as efs,
+    aws_aps as aps
 )
 import os
 import yaml
-
-# Import the custom resource to switch on control plane logging from ekslogs_custom_resource.py
-from ekslogs_custom_resource import EKSLogsObjectResource
-from amp_custom_resource import AMPCustomResource
 
 
 class EKSClusterStack(Stack):
@@ -65,10 +62,6 @@ class EKSClusterStack(Stack):
                 self, "VPC",
                 # We are choosing to spread our VPC across 3 availability zones
                 max_azs=3,
-                # We are creating a VPC that has a /22, 1024 IPs, for our EKS cluster.
-                # I am using that instead of a /16 etc. as I know many companies have constraints here
-                # If you can go bigger than this great - but I would try not to go much smaller if you can
-                # I use https://www.davidc.net/sites/default/subnets/subnets.html to me work out the CIDRs
                 cidr=self.node.try_get_context("vpc_cidr"),
                 subnet_configuration=[
                     # 3 x Public Subnets (1 per AZ) with 64 IPs each for our ALBs and NATs
@@ -101,7 +94,10 @@ class EKSClusterStack(Stack):
             endpoint_access=eks.EndpointAccess.PRIVATE,
             version=eks.KubernetesVersion.of(
                 self.node.try_get_context("eks_version")),
-            default_capacity=0
+            default_capacity=0,
+            cluster_logging=[eks.ClusterLoggingTypes.API, eks.ClusterLoggingTypes.AUDIT,
+                             eks.ClusterLoggingTypes.AUTHENTICATOR, eks.ClusterLoggingTypes.CONTROLLER_MANAGER,
+                             eks.ClusterLoggingTypes.SCHEDULER]
         )
 
         # Create a Fargate Pod Execution Role to use with any Fargate Profiles
@@ -111,15 +107,6 @@ class EKSClusterStack(Stack):
             assumed_by=iam.ServicePrincipal("eks-fargate-pods.amazonaws.com"),
             managed_policies=[iam.ManagedPolicy.from_aws_managed_policy_name(
                 "AmazonEKSFargatePodExecutionRolePolicy")]
-        )
-
-        # Enable control plane logging (via ekslogs_custom_resource.py)
-        # This requires a custom resource until that has CloudFormation Support
-        # TODO: remove this when no longer required when CF support launches
-        eks_logs_custom_resource = EKSLogsObjectResource(
-            self, "EKSLogsObjectResource",
-            eks_name=eks_cluster.cluster_name,
-            eks_arn=eks_cluster.cluster_arn
         )
 
         # Create the CF exports that let you rehydrate the Cluster object in other stack(s)
@@ -1580,17 +1567,8 @@ class EKSClusterStack(Stack):
         if (self.node.try_get_context("deploy_amp") == "True"):
             # For more information see https://aws.amazon.com/blogs/mt/getting-started-amazon-managed-service-for-prometheus/
 
-            # Use our AMPCustomResource to provision/deprovision the AMP
-            # TODO remove this and use the proper CDK construct when it becomes available
-            amp_workspace_id = AMPCustomResource(
-                self, "AMPCustomResource").workspace_id
-            # Output the AMP Workspace ID and Export it
-            CfnOutput(
-                self, "AMPWorkspaceID",
-                value=amp_workspace_id,
-                description="The ID of the AMP Workspace",
-                export_name="AMPWorkspaceID"
-            )
+            # Create AMP workspace
+            amp_workspace = aps.CfnWorkspace(self, "AMPWorkspace")
 
             # Create IRSA mapping
             amp_sa = eks_cluster.add_service_account(
@@ -1647,7 +1625,7 @@ class EKSClusterStack(Stack):
                                     "maxShards": 200,
                                     "capacity": 2500
                                 },
-                                "url": "https://aps-workspaces."+self.region+".amazonaws.com/workspaces/"+amp_workspace_id+"/api/v1/remote_write",
+                                "url": amp_workspace.attr_prometheus_endpoint+"api/v1/remote_write",
                                 "sigv4": {
                                     "region": self.region
                                 }
@@ -1740,7 +1718,7 @@ class EKSClusterStack(Stack):
                                 "name": "Prometheus",
                                 "type": "prometheus",
                                 "access": "proxy",
-                                "url": "https://aps-workspaces."+self.region+".amazonaws.com/workspaces/"+amp_workspace_id,
+                                "url": amp_workspace.attr_prometheus_endpoint,
                                 "isDefault": True,
                                 "editable": True,
                                 "jsonData": {
@@ -1825,13 +1803,6 @@ class EKSClusterStack(Stack):
                 selectors=[eks.Selector(
                     namespace="kube-system",), eks.Selector(namespace="default")]
             )
-
-            # The enabling of logs fails if the Fargate Profile is getting created
-            # Tried the to make the Fargate Profile depend on the Logs CustomResource and
-            # that didn't fix it (I guess that returns COMPLETE before done). However,
-            # flipping it the other way and making the Logs depend on the Fargate worked
-            eks_logs_custom_resource.node.add_dependency(
-                default_fargate_profile)
 
         # Send Fargate logs to CloudWatch Logs
         if (self.node.try_get_context("fargate_logs_to_cloudwatch") == "True"):
