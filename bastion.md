@@ -4,7 +4,7 @@ If you set `deploy_bastion` to `True` in `cluster-bootstrap/cdk.json` then the t
 
 To access this bastion:
 1. Go to the Systems Manager Server in the AWS Console
-1. Go to Managed Instances on the left hand navigation pane
+1. Go to Fleet Manager on the left hand navigation pane
 1. Select the instance with the name `EKSClusterStack/CodeServerInstance`
 1. Under the Instance Actions menu on the upper right choose Start Session
 1. Run `aws eks update-kubeconfig --name <cluster name> --region <your region> to populate your ~/.kube/config file
