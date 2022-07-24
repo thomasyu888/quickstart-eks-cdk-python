@@ -1,6 +1,5 @@
 {
   "dependencies": {
-    "aws-cdk": "2.10.0",
-    "acorn": "8.8.0"
+    "aws-cdk": "2.10.0"
   }
 }
