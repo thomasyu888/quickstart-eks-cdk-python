@@ -165,7 +165,7 @@
         },
         "Source": {
           "BuildSpec": "cluster-bootstrap/buildspec.yml",
-          "Location": "https://github.com/aws-quickstart/quickstart-eks-cdk-python.git",
+          "Location": "https://github.com/thomasyu888/quickstart-eks-cdk-python.git",
           "ReportBuildStatus": true,
           "Type": "GITHUB"
         },

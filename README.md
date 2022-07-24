@@ -91,12 +91,13 @@ While you can toggle any of the parameters to in a custom configuration, we incl
 
 ## How to deploy via CodeBuild
 
+1. Log into jumpcloud and set up your aws credentials in `~/.aws/credentials` for dnt-dev account.
 1. Fork this [Git Repo](https://github.com/aws-quickstart/quickstart-eks-cdk-python) to your own GitHub account - for instruction see https://docs.github.com/en/get-started/quickstart/fork-a-repo
 1. Generate a personal access token on GitHub - https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token. For GitHub, your personal access token must have the following scopes.
     - repo: Grants full control of private repositories.
     - repo:status: Grants read/write access to public and private repository commit statuses.
     - admin:repo_hook: Grants full control of repository hooks. This scope is not required if your token has the repo scope.
-1. Run `aws codebuild import-source-credentials --server-type GITHUB --auth-type PERSONAL_ACCESS_TOKEN --token <token_value>` to provide your token to CodeBuild
+1. Run `aws --profile dnt-dev codebuild import-source-credentials --server-type GITHUB --auth-type PERSONAL_ACCESS_TOKEN --token <token_value>` to provide your token to CodeBuild
 1. Select which of the [three cdk.json files](#the-three-cdkjson-sets-of-parameters) (cdk.json.default, cdk.json.community or cdk.json.fargate) you'd like as a base and copy that over the top of `cdk.json` in the `cluster-bootstrap/` folder.
 1. Edit the [cdk.json](https://github.com/aws-quickstart/quickstart-eks-cdk-python/blob/main/cluster-bootstrap/cdk.json) file to further customise it to your environment. For example:
     - If you want to use an existing IAM Role to administer the cluster instead of creating a new one (which you'll then have to assume to administer the cluster) set `create_new_cluster_admin_role` to False and then add the ARN for your role in `existing_admin_role_arn`
